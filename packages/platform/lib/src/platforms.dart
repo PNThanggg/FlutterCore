@@ -12,7 +12,7 @@ import 'package:universal_html/html.dart';
 /// value for whether the current platform is web, mobile, Android, iOS, Mac OS,
 /// and other operating systems. There are also methods for getting the current platform's name and whether
 /// it's a desktop platform, as well as detecting whether the code is running on mobile when using a browser. Additionally, there is a method for converting a file to a multipart HTTP request.
-abstract class VPlatforms {
+abstract class Platforms {
   static bool isWeb = kIsWeb;
 
   static bool get isMobile => isWeb ? false : io.Platform.isAndroid || io.Platform.isIOS;
