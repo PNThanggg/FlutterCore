@@ -1,6 +1,5 @@
-library;
+library logger;
 
-export 'app_log.dart';
 export 'src/ansi_color.dart';
 export 'src/console_logger.dart';
 export 'src/dio/dio_logger_interceptor.dart';

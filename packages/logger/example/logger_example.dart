@@ -6,13 +6,20 @@ void main() {
 }
 
 void demo() {
-  final log = AppLog("LoggerExample");
+  final ConsoleLogger loggerNoStack = ConsoleLogger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      printTime: true,
+      errorMethodCount: 0,
+    ),
+    output: ConsoleOutput(),
+    filter: DevelopmentFilter(),
+  );
 
-  log.debug('Log message with 2 methods');
-  log.info('Info message');
-  log.warning('Just a warning!');
-  log.error(
+  loggerNoStack.debug('Log message with 2 methods');
+  loggerNoStack.info('Info message');
+  loggerNoStack.warning('Just a warning!');
+  loggerNoStack.error(
     'Error! Something bad happened',
-    tag: 'Test Error',
   );
 }

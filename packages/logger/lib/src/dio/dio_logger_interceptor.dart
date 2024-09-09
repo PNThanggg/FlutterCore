@@ -4,6 +4,16 @@ import 'package:logger/logger.dart';
 class DioLogger extends Interceptor {
   DioLoggerSettings settings = const DioLoggerSettings();
 
+  final ConsoleLogger _loggerNoStack = ConsoleLogger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      printTime: true,
+      errorMethodCount: 0,
+    ),
+    output: ConsoleOutput(),
+    filter: DevelopmentFilter(),
+  );
+
   DioLogger();
 
   void configure({
@@ -41,7 +51,7 @@ class DioLogger extends Interceptor {
       settings: settings,
     );
 
-    AppLog("HttpRequest").info(httpLog.generateTextMessage());
+    _loggerNoStack.info(httpLog.generateTextMessage());
   }
 
   @override
@@ -59,7 +69,7 @@ class DioLogger extends Interceptor {
       response: response,
     );
 
-    AppLog("HttpResponse").debug(httpLog.generateTextMessage());
+    _loggerNoStack.debug(httpLog.generateTextMessage());
   }
 
   @override
@@ -72,6 +82,6 @@ class DioLogger extends Interceptor {
       dioException: err,
       settings: settings,
     );
-    AppLog("HttpError").error(httpErrorLog.generateTextMessage());
+    _loggerNoStack.error(httpErrorLog.generateTextMessage());
   }
 }
