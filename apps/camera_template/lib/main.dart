@@ -27,8 +27,7 @@ IconData getCameraLensIcon(CameraLensDirection direction) {
 }
 
 void _logError(String code, String? message) {
-  // ignore: avoid_print
-  print('Error: $code${message == null ? '' : '\nError Message: $message'}');
+  debugPrint('Error: $code${message == null ? '' : '\nError Message: $message'}');
 }
 
 /// Camera example home widget.
@@ -62,6 +61,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
   double _maxAvailableZoom = 1.0;
   double _currentScale = 1.0;
   double _baseScale = 1.0;
+  late Stopwatch _stopwatch;
 
   // Counting pointers (number of user fingers on screen)
   int _pointers = 0;
@@ -70,6 +70,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _stopwatch = Stopwatch();
 
     _flashModeControlRowAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -123,6 +125,22 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
   }
 
   // #enddocregion AppLifecycle
+
+  void handleStartStop() {
+    if (_stopwatch.isRunning) {
+      _stopwatch.stop();
+      _stopwatch.reset();
+    } else {
+      _stopwatch.start();
+    }
+  }
+
+  void timerReset() {
+    if (_stopwatch.isRunning) {
+      _stopwatch.stop();
+      _stopwatch.reset();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -182,19 +200,53 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
       return Listener(
         onPointerDown: (_) => _pointers++,
         onPointerUp: (_) => _pointers--,
-        child: CameraPreview(
-          controller!,
-          child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onScaleStart: _handleScaleStart,
-              onScaleUpdate: _handleScaleUpdate,
-              onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
-            );
-          }),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            CameraPreview(
+              controller!,
+              child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onScaleStart: _handleScaleStart,
+                  onScaleUpdate: _handleScaleUpdate,
+                  onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
+                );
+              }),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
+              child: Text(
+                formatDuration(_stopwatch.elapsedMilliseconds),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
+  }
+
+  String formatDuration(int milliseconds) {
+    int hours = (milliseconds / (1000 * 60 * 60)).floor();
+    int minutes = ((milliseconds / (1000 * 60)) % 60).floor();
+    int seconds = ((milliseconds / 1000) % 60).floor();
+
+    return '${hours.toString().padLeft(2, '0')}:'
+        '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
   }
 
   void _handleScaleStart(ScaleStartDetails details) {
@@ -583,7 +635,9 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
     // If the controller is updated then update the UI.
     cameraController.addListener(() {
       if (mounted) {
-        setState(() {});
+        Timer.periodic(const Duration(seconds: 1), (_) {
+          setState(() {});
+        });
       }
       if (cameraController.value.hasError) {
         showInSnackBar('Camera error ${cameraController.value.errorDescription}');
@@ -736,6 +790,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
 
   void onVideoRecordButtonPressed() {
     startVideoRecording().then((_) {
+      handleStartStop();
       if (mounted) {
         setState(() {});
       }
@@ -744,6 +799,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome> with WidgetsBindi
 
   void onStopButtonPressed() {
     stopVideoRecording().then((XFile? file) async {
+      timerReset();
       if (mounted) {
         setState(() {});
       }
